@@ -4,14 +4,6 @@ resource "random_pet" "this" {
   prefix    = "postgres"
 }
 
-data "aws_rds_orderable_db_instance" "postgres" {
-  engine         = "postgres"
-  license_model  = "postgresql-license"
-  storage_type   = var.storage_type
-  preferred_instance_classes = [var.instance_class]
-  preferred_engine_versions  = [var.engine_version, "15.2", "14.7"]  # Fallback versions if specified version isn't available
-}
-
 resource "aws_db_subnet_group" "this" {
   name       = random_pet.this.id
   subnet_ids = var.subnet_ids
@@ -41,12 +33,20 @@ resource "aws_security_group" "this" {
   tags = var.tags
 }
 
+data "aws_rds_orderable_db_instance" "postgres" {
+  engine         = "postgres"
+  license_model  = "postgresql-license"
+  engine_version = "17.4"
+
+  preferred_instance_classes = [var.instance_class]
+}
+
 resource "aws_db_instance" "this" {
   identifier = random_pet.this.id
 
-  engine         = data.aws_rds_orderable_db_instance.postgres.engine
-  engine_version = data.aws_rds_orderable_db_instance.postgres.engine_version
-  instance_class = data.aws_rds_orderable_db_instance.postgres.instance_class
+  engine         = "postgres"
+  engine_version = var.engine_version
+  instance_class = var.instance_class
 
   allocated_storage = var.allocated_storage
   storage_type      = var.storage_type
