@@ -4,6 +4,7 @@ resource "random_pet" "this" {
   prefix    = "postgres"
 }
 
+
 resource "aws_db_subnet_group" "this" {
   name       = random_pet.this.id
   subnet_ids = var.subnet_ids
