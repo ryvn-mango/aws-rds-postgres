@@ -1,16 +1,3 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = ">= 5.0"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = ">= 3.0"
-    }
-  }
-}
-
 resource "random_pet" "this" {
   length    = 2
   separator = "-"
@@ -53,10 +40,10 @@ resource "aws_db_instance" "this" {
   engine_version = var.engine_version
   instance_class = var.instance_class
 
-  allocated_storage     = var.allocated_storage
-  storage_type         = var.storage_type
-  storage_encrypted    = var.storage_encrypted
-  
+  allocated_storage = var.allocated_storage
+  storage_type      = var.storage_type
+  storage_encrypted = var.storage_encrypted
+
   db_name  = var.database_name
   username = var.username
   password = var.password
@@ -67,10 +54,10 @@ resource "aws_db_instance" "this" {
   vpc_security_group_ids = [aws_security_group.this.id]
 
   backup_retention_period = var.backup_retention_period
-  backup_window          = var.backup_window
-  maintenance_window     = var.maintenance_window
+  backup_window           = var.backup_window
+  maintenance_window      = var.maintenance_window
 
   skip_final_snapshot = var.skip_final_snapshot
-  
+
   tags = var.tags
 }
