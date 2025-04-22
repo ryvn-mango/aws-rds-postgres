@@ -90,7 +90,7 @@ variable "maintenance_window" {
 variable "skip_final_snapshot" {
   description = "Determines whether a final DB snapshot is created before the DB instance is deleted"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "tags" {
