@@ -5,7 +5,7 @@ This Terraform module provisions a PostgreSQL database instance on Amazon RDS wi
 ## Features
 
 - Creates a PostgreSQL RDS instance with customizable configuration
-- Sets up a dedicated VPC security group
+- Sets up a dedicated VPC security group with configurable access rules
 - Configures subnet groups for the RDS instance
 - Supports encryption, backups, and maintenance windows
 - Generates random pet names for resource identification
@@ -17,7 +17,6 @@ module "postgres" {
   source = "github.com/ryvn-technologies/aws-rds-postgres"
 
   # Required variables
-  region        = "us-west-2"
   vpc_id        = "vpc-xxxxxxxx"
   subnet_ids    = ["subnet-xxxxxxxx", "subnet-yyyyyyyy"]
   database_name = "myapp"
@@ -27,6 +26,9 @@ module "postgres" {
   # Optional variables
   instance_class    = "db.t3.micro"
   allocated_storage = 20
+  
+  # Configure access rules
+  ingress_cidr_blocks = ["10.0.0.0/8"]  # Restrict access to internal network
   
   tags = {
     Environment = "production"
@@ -54,7 +56,6 @@ module "postgres" {
 
 | Name | Description | Type | Default |
 |------|-------------|------|---------|
-| region | AWS region | `string` | - |
 | vpc_id | VPC ID where RDS will be deployed | `string` | - |
 | subnet_ids | A list of VPC subnet IDs | `list(string)` | - |
 | database_name | The name of the database to create | `string` | - |
@@ -65,6 +66,7 @@ module "postgres" {
 
 | Name | Description | Type | Default |
 |------|-------------|------|---------|
+| region | AWS region for the provider configuration | `string` | - |
 | engine_version | PostgreSQL engine version | `string` | `"17.4"` |
 | instance_class | The instance type of the RDS instance | `string` | `"db.t3.micro"` |
 | allocated_storage | The allocated storage in gigabytes | `number` | `20` |
@@ -75,6 +77,8 @@ module "postgres" {
 | backup_window | The daily time range for automated backups | `string` | `"03:00-04:00"` |
 | maintenance_window | The window to perform maintenance in | `string` | `"Mon:04:00-Mon:05:00"` |
 | skip_final_snapshot | Skip final snapshot before deletion | `bool` | `false` |
+| ingress_cidr_blocks | List of CIDR blocks to allow access to the database | `list(string)` | `["0.0.0.0/0"]` |
+| egress_cidr_blocks | List of CIDR blocks to allow egress traffic from the database | `list(string)` | `["0.0.0.0/0"]` |
 | tags | A mapping of tags to assign to all resources | `map(string)` | `{}` |
 
 ## Outputs
@@ -90,9 +94,10 @@ module "postgres" {
 
 ## Security Considerations
 
-- The security group created by this module allows inbound access on port 5432 from all IP addresses (0.0.0.0/0). Consider restricting this to specific IP ranges for production environments.
-- Database encryption is enabled by default.
+- By default, the security group allows inbound access on port 5432 from all IP addresses (0.0.0.0/0). It's strongly recommended to restrict this using the `ingress_cidr_blocks` variable in production environments.
+- Database encryption is enabled by default using AWS KMS.
 - Final snapshots are created by default when destroying the database (skip_final_snapshot = false).
+- The module uses Kubernetes backend configuration. Ensure your Terraform environment is properly configured for this.
 
 ## License
 
