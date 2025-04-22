@@ -98,3 +98,15 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "ingress_cidr_blocks" {
+  description = "List of CIDR blocks to allow access to the database. If not provided, allows access from anywhere."
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
+
+variable "egress_cidr_blocks" {
+  description = "List of CIDR blocks to allow egress traffic from the database. If not provided, allows traffic to anywhere."
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
