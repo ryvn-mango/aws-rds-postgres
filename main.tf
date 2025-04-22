@@ -37,7 +37,7 @@ resource "aws_security_group" "this" {
 data "aws_rds_orderable_db_instance" "postgres" {
   engine         = "postgres"
   license_model  = "postgresql-license"
-  engine_version = "17.4"
+  engine_version = var.engine_version
 
   preferred_instance_classes = [var.instance_class]
 }

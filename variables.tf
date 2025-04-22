@@ -1,9 +1,10 @@
+# Required variables
+
 variable "region" {
   description = "AWS region"
   type        = string
 }
 
-# Required variables
 variable "vpc_id" {
   description = "VPC ID where RDS will be deployed"
   type        = string
@@ -31,6 +32,7 @@ variable "password" {
 }
 
 # Optional variables with defaults
+
 variable "engine_version" {
   description = "PostgreSQL engine version"
   type        = string
