@@ -8,7 +8,7 @@ This Terraform module provisions a PostgreSQL database instance on Amazon RDS wi
 - Sets up a dedicated VPC security group with configurable access rules
 - Configures subnet groups for the RDS instance
 - Supports encryption, backups, and maintenance windows
-- Generates random pet names for resource identification
+ - Uses a caller-provided name prefix for resource identification
 
 ## Usage
 
@@ -19,9 +19,9 @@ module "postgres" {
   # Required variables
   vpc_id        = "vpc-xxxxxxxx"
   subnet_ids    = ["subnet-xxxxxxxx", "subnet-yyyyyyyy"]
+  name_prefix   = "myapp-prod"
   database_name = "myapp"
   username      = "dbadmin"
-  password      = "your-secure-password"
 
   # Optional variables
   instance_class    = "db.t3.micro"
@@ -35,6 +35,19 @@ module "postgres" {
     Project     = "myapp"
   }
 }
+```
+
+The module auto-generates a strong random password and exposes it as a sensitive Terraform output named `db_master_password`.
+Retrieve it after apply with:
+
+```
+terraform output -raw db_master_password
+```
+
+For a ready-to-use PostgreSQL connection URI (includes the password):
+
+```
+terraform output -raw db_connection_uri
 ```
 
 ## Requirements
@@ -58,9 +71,9 @@ module "postgres" {
 |------|-------------|------|---------|
 | vpc_id | VPC ID where RDS will be deployed | `string` | - |
 | subnet_ids | A list of VPC subnet IDs | `list(string)` | - |
+| name_prefix | Name prefix for RDS identifier and related resources | `string` | - |
 | database_name | The name of the database to create | `string` | - |
 | username | Username for the master DB user | `string` | - |
-| password | Password for the master DB user | `string` | - |
 
 ### Optional Variables
 
@@ -81,6 +94,12 @@ module "postgres" {
 | egress_cidr_blocks | List of CIDR blocks to allow egress traffic from the database | `list(string)` | `["0.0.0.0/0"]` |
 | tags | A mapping of tags to assign to all resources | `map(string)` | `{}` |
 
+## Naming Constraints
+
+- name_prefix: 1–63 chars, lowercase, starts with a letter, contains only letters, numbers, and hyphens; no trailing hyphen; no consecutive hyphens.
+- database_name: 1–63 chars, lowercase, starts with a letter, contains only letters, numbers, and underscores.
+- username: 1–63 chars, lowercase, starts with a letter, contains only letters and numbers; reserved names not allowed: `postgres`, `rdsadmin`.
+
 ## Outputs
 
 | Name | Description |
@@ -91,6 +110,8 @@ module "postgres" {
 | db_instance_port | The database port |
 | db_subnet_group_id | The db subnet group name |
 | db_security_group_id | The security group ID |
+| db_master_password | The generated master password (sensitive) |
+| db_connection_uri | PostgreSQL connection URI with credentials (sensitive) |
 
 ## Security Considerations
 
@@ -98,6 +119,8 @@ module "postgres" {
 - Database encryption is enabled by default using AWS KMS.
 - Final snapshots are created by default when destroying the database (skip_final_snapshot = false).
 - The module uses Kubernetes backend configuration. Ensure your Terraform environment is properly configured for this.
+ - The password is generated at apply time and marked as a sensitive output. Store it securely (e.g., AWS Secrets Manager) rather than relying on CLI history.
+ - Ensure `name_prefix` conforms to AWS naming constraints for RDS identifiers (letters, numbers, hyphens; must start with a letter; max 63 characters).
 
 ## License
 

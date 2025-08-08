@@ -1,20 +1,13 @@
-resource "random_pet" "this" {
-  length    = 2
-  separator = "-"
-  prefix    = "postgres"
-}
-
-
 resource "aws_db_subnet_group" "this" {
-  name       = random_pet.this.id
+  name       = "${var.name_prefix}-subnet-group"
   subnet_ids = var.subnet_ids
 
   tags = var.tags
 }
 
 resource "aws_security_group" "this" {
-  name        = "${random_pet.this.id}-rds-sg"
-  description = "Security group for ${random_pet.this.id} RDS instance"
+  name        = "${var.name_prefix}-rds-sg"
+  description = "Security group for ${var.name_prefix} RDS instance"
   vpc_id      = var.vpc_id
 
   ingress {
@@ -43,7 +36,7 @@ data "aws_rds_orderable_db_instance" "postgres" {
 }
 
 resource "aws_db_instance" "this" {
-  identifier = random_pet.this.id
+  identifier = var.name_prefix
 
   engine         = "postgres"
   engine_version = var.engine_version
@@ -55,7 +48,7 @@ resource "aws_db_instance" "this" {
 
   db_name  = var.database_name
   username = var.username
-  password = var.password
+  password = random_password.master.result
   port     = 5432
 
   multi_az               = var.multi_az
@@ -69,4 +62,14 @@ resource "aws_db_instance" "this" {
   skip_final_snapshot = var.skip_final_snapshot
 
   tags = var.tags
+}
+
+resource "random_password" "master" {
+  length           = 20
+  special          = true
+  min_upper        = 1
+  min_lower        = 1
+  min_numeric      = 1
+  min_special      = 1
+  override_special = "!#$%&*()-_=+[]{}<>:?@"
 }

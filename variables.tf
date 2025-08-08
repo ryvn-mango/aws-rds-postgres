@@ -15,20 +15,79 @@ variable "subnet_ids" {
   type        = list(string)
 }
 
+variable "name_prefix" {
+  description = "Name prefix used for RDS identifier and related resources"
+  type        = string
+
+  validation {
+    condition     = length(var.name_prefix) > 0 && length(var.name_prefix) <= 63
+    error_message = "name_prefix must be 1-63 characters long."
+  }
+
+  validation {
+    condition     = lower(var.name_prefix) == var.name_prefix
+    error_message = "name_prefix must be lowercase."
+  }
+
+  validation {
+    condition     = can(regex("^[a-z][a-z0-9-]*$", var.name_prefix))
+    error_message = "name_prefix must start with a letter and contain only lowercase letters, numbers, and hyphens."
+  }
+
+  validation {
+    condition     = length(regexall("--", var.name_prefix)) == 0
+    error_message = "name_prefix must not contain consecutive hyphens ('--')."
+  }
+
+  validation {
+    condition     = endswith(var.name_prefix, "-") == false
+    error_message = "name_prefix must not end with a hyphen."
+  }
+}
+
 variable "database_name" {
   description = "The name of the database to create"
   type        = string
+
+  validation {
+    condition     = length(var.database_name) > 0 && length(var.database_name) <= 63
+    error_message = "database_name must be 1-63 characters long."
+  }
+
+  validation {
+    condition     = lower(var.database_name) == var.database_name
+    error_message = "database_name must be lowercase."
+  }
+
+  validation {
+    condition     = can(regex("^[a-z][a-z0-9_]*$", var.database_name))
+    error_message = "database_name must start with a letter and contain only lowercase letters, numbers, and underscores."
+  }
 }
 
 variable "username" {
   description = "Username for the master DB user"
   type        = string
-}
 
-variable "password" {
-  description = "Password for the master DB user"
-  type        = string
-  sensitive   = true
+  validation {
+    condition     = length(var.username) > 0 && length(var.username) <= 63
+    error_message = "username must be 1-63 characters long."
+  }
+
+  validation {
+    condition     = lower(var.username) == var.username
+    error_message = "username must be lowercase."
+  }
+
+  validation {
+    condition     = can(regex("^[a-z][a-z0-9]*$", var.username))
+    error_message = "username must start with a letter and contain only lowercase letters and numbers."
+  }
+
+  validation {
+    condition     = !(var.username == "postgres" || var.username == "rdsadmin")
+    error_message = "username cannot be one of the reserved names: postgres, rdsadmin."
+  }
 }
 
 # Optional variables with defaults
