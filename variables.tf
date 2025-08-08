@@ -152,6 +152,12 @@ variable "skip_final_snapshot" {
   default     = true
 }
 
+variable "deletion_protection" {
+  description = "Enable deletion protection to prevent accidental DB instance deletion"
+  type        = bool
+  default     = true
+}
+
 variable "tags" {
   description = "A mapping of tags to assign to all resources"
   type        = map(string)

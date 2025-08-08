@@ -90,6 +90,7 @@ terraform output -raw db_connection_uri
 | backup_window | The daily time range for automated backups | `string` | `"03:00-04:00"` |
 | maintenance_window | The window to perform maintenance in | `string` | `"Mon:04:00-Mon:05:00"` |
 | skip_final_snapshot | Skip final snapshot before deletion | `bool` | `false` |
+| deletion_protection | Prevent accidental deletion of the DB instance | `bool` | `true` |
 | ingress_cidr_blocks | List of CIDR blocks to allow access to the database | `list(string)` | `["0.0.0.0/0"]` |
 | egress_cidr_blocks | List of CIDR blocks to allow egress traffic from the database | `list(string)` | `["0.0.0.0/0"]` |
 | tags | A mapping of tags to assign to all resources | `map(string)` | `{}` |
@@ -121,6 +122,7 @@ terraform output -raw db_connection_uri
 - The module uses Kubernetes backend configuration. Ensure your Terraform environment is properly configured for this.
  - The password is generated at apply time and marked as a sensitive output. Store it securely (e.g., AWS Secrets Manager) rather than relying on CLI history.
  - Ensure `name_prefix` conforms to AWS naming constraints for RDS identifiers (letters, numbers, hyphens; must start with a letter; max 63 characters).
+ - Deletion protection is enabled by default. Set `deletion_protection = false` before destroying the instance.
 
 ## License
 
