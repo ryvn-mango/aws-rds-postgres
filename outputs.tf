@@ -38,8 +38,8 @@ output "db_connection_uri" {
   description = "PostgreSQL connection URI including credentials (sensitive)"
   value = format(
     "postgresql://%s:%s@%s:%d/%s",
-    urlencode(var.username),
-    urlencode(random_password.master.result),
+    var.username,
+    random_password.master.result,
     aws_db_instance.this.address,
     aws_db_instance.this.port,
     var.database_name,

@@ -60,6 +60,7 @@ resource "aws_db_instance" "this" {
   maintenance_window      = var.maintenance_window
 
   skip_final_snapshot = var.skip_final_snapshot
+  deletion_protection = var.deletion_protection
 
   tags = var.tags
 }
