@@ -10,19 +10,45 @@ resource "aws_security_group" "this" {
   description = "Security group for ${var.name_prefix} RDS instance"
   vpc_id      = var.vpc_id
 
-  ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = var.ingress_cidr_blocks
-  }
+  tags = var.tags
+}
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = var.egress_cidr_blocks
-  }
+# Ingress rules for security groups (preferred)
+resource "aws_vpc_security_group_ingress_rule" "from_security_groups" {
+  for_each = length(var.ingress_security_group_ids) > 0 ? toset(var.ingress_security_group_ids) : []
+
+  security_group_id            = aws_security_group.this.id
+  referenced_security_group_id = each.value
+  from_port                    = 5432
+  to_port                      = 5432
+  ip_protocol                  = "tcp"
+  description                  = "PostgreSQL access from security group ${each.value}"
+
+  tags = var.tags
+}
+
+# Ingress rules for CIDR blocks (fallback when no security groups provided)
+resource "aws_vpc_security_group_ingress_rule" "from_cidr_blocks" {
+  for_each = length(var.ingress_security_group_ids) == 0 ? toset(var.ingress_cidr_blocks) : []
+
+  security_group_id = aws_security_group.this.id
+  cidr_ipv4         = each.value
+  from_port         = 5432
+  to_port           = 5432
+  ip_protocol       = "tcp"
+  description       = "PostgreSQL access from ${each.value}"
+
+  tags = var.tags
+}
+
+# Egress rules
+resource "aws_vpc_security_group_egress_rule" "to_cidr_blocks" {
+  for_each = toset(var.egress_cidr_blocks)
+
+  security_group_id = aws_security_group.this.id
+  cidr_ipv4         = each.value
+  ip_protocol       = "-1"
+  description       = "Allow all outbound traffic to ${each.value}"
 
   tags = var.tags
 }

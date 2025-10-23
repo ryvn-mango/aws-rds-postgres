@@ -175,8 +175,14 @@ variable "tags" {
   default     = {}
 }
 
+variable "ingress_security_group_ids" {
+  description = "List of security group IDs to allow access to the database. If provided, this takes precedence over ingress_cidr_blocks."
+  type        = list(string)
+  default     = []
+}
+
 variable "ingress_cidr_blocks" {
-  description = "List of CIDR blocks to allow access to the database. If not provided, allows access from anywhere."
+  description = "List of CIDR blocks to allow access to the database. Only used if ingress_security_group_ids is empty. Defaults to allowing access from anywhere."
   type        = list(string)
   default     = ["0.0.0.0/0"]
 }

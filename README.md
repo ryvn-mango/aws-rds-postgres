@@ -28,8 +28,11 @@ module "postgres" {
   instance_class    = "db.t3.micro"
   allocated_storage = 20
   
-  # Configure access rules
-  ingress_cidr_blocks = ["10.0.0.0/8"]  # Restrict access to internal network
+  # Configure access rules - Option 1: Use security groups (preferred)
+  ingress_security_group_ids = ["sg-xxxxxxxx"]  # Security groups allowed to access RDS
+
+  # Configure access rules - Option 2: Use CIDR blocks (fallback)
+  # ingress_cidr_blocks = ["10.0.0.0/8"]  # Only used if ingress_security_group_ids is empty
   
   tags = {
     Environment = "production"
@@ -97,7 +100,8 @@ terraform output -raw db_connection_uri_with_env_password
 | maintenance_window | The window to perform maintenance in | `string` | `"Mon:04:00-Mon:05:00"` |
 | skip_final_snapshot | Skip final snapshot before deletion | `bool` | `false` |
 | deletion_protection | Prevent accidental deletion of the DB instance | `bool` | `true` |
-| ingress_cidr_blocks | List of CIDR blocks to allow access to the database | `list(string)` | `["0.0.0.0/0"]` |
+| ingress_security_group_ids | List of security group IDs allowed to access the database (takes precedence over ingress_cidr_blocks) | `list(string)` | `[]` |
+| ingress_cidr_blocks | List of CIDR blocks to allow access to the database (only used if ingress_security_group_ids is empty) | `list(string)` | `["0.0.0.0/0"]` |
 | egress_cidr_blocks | List of CIDR blocks to allow egress traffic from the database | `list(string)` | `["0.0.0.0/0"]` |
 | tags | A mapping of tags to assign to all resources | `map(string)` | `{}` |
 
@@ -123,13 +127,13 @@ terraform output -raw db_connection_uri_with_env_password
 
 ## Security Considerations
 
-- By default, the security group allows inbound access on port 5432 from all IP addresses (0.0.0.0/0). It's strongly recommended to restrict this using the `ingress_cidr_blocks` variable in production environments.
-- Database encryption is enabled by default using AWS KMS.
-- Final snapshots are created by default when destroying the database (skip_final_snapshot = false).
-- The module uses Kubernetes backend configuration. Ensure your Terraform environment is properly configured for this.
- - Provide the password securely (e.g., from a secrets manager or environment variable) rather than hardcoding it; it is exposed as a sensitive output for convenience.
- - Ensure `name_prefix` conforms to AWS naming constraints for RDS identifiers (letters, numbers, hyphens; must start with a letter; max 63 characters).
- - Deletion protection is enabled by default. Set `deletion_protection = false` before destroying the instance.
+- **Access Control**: By default, the security group allows inbound access on port 5432 from all IP addresses (0.0.0.0/0) when `ingress_security_group_ids` is empty. It's strongly recommended to use `ingress_security_group_ids` in production environments for better security, or restrict `ingress_cidr_blocks` to your internal network.
+- **Security Group Rules**: This module follows AWS best practices by using separate `aws_vpc_security_group_ingress_rule` and `aws_vpc_security_group_egress_rule` resources instead of inline rules. This provides better support for multiple CIDR blocks, tags, and descriptions.
+- **Encryption**: Database encryption is enabled by default using AWS KMS.
+- **Backups**: Final snapshots are created by default when destroying the database (skip_final_snapshot = false).
+- **Password Management**: Provide the password securely (e.g., from a secrets manager or environment variable) rather than hardcoding it; it is exposed as a sensitive output for convenience.
+- **Naming**: Ensure `name_prefix` conforms to AWS naming constraints for RDS identifiers (letters, numbers, hyphens; must start with a letter; max 63 characters).
+- **Deletion Protection**: Deletion protection is enabled by default. Set `deletion_protection = false` before destroying the instance.
 
 ## License
 
