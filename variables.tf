@@ -85,8 +85,8 @@ variable "username" {
   }
 
   validation {
-    condition     = !(var.username == "postgres" || var.username == "rdsadmin")
-    error_message = "username cannot be one of the reserved names: postgres, rdsadmin."
+    condition     = !(var.username == "rdsadmin")
+    error_message = "username cannot be one of the reserved names: rdsadmin."
   }
 }
 
