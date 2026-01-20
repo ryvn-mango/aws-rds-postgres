@@ -13,7 +13,7 @@ resource "aws_security_group" "this" {
   tags = var.tags
 }
 
-# Ingress rules for security groups (preferred)
+# Ingress rules for security groups (preferred)  
 resource "aws_vpc_security_group_ingress_rule" "from_security_groups" {
   for_each = length(var.ingress_security_group_ids) > 0 ? toset(var.ingress_security_group_ids) : []
 
